@@ -4,7 +4,8 @@ import {
   getProfesorById, 
   createProfesor, 
   updateProfesor,
-  deleteProfesor 
+  deleteProfesor,
+  assignMateriaToProfesor
 } from './profesor.controller.js';
 
 const router = Router();
