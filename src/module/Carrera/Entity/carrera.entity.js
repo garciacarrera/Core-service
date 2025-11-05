@@ -1,8 +1,8 @@
 import { EntitySchema } from "typeorm";
 
-export const PlanEstudio = new EntitySchema({
-  name: "PlanEstudio",
-  tableName: "plan_estudio",
+export default new EntitySchema({
+  name: "Carrera",
+  tableName: "carrera",
   columns: {
     id: {
       primary: true,
@@ -14,23 +14,28 @@ export const PlanEstudio = new EntitySchema({
       length: 255,
       nullable: false
     },
-    anio_educativo: {
+    cant_anios: {
       type: "int",
       nullable: false
+    },
+    validacion: {
+      type: "varchar",
+      length: 255,
+      nullable: true
     }
   },
   relations: {
-    carrera: {
+    cicloLectivo: {
       type: "many-to-one",
-      target: "Carrera",
+      target: "CicloLectivo",
       joinColumn: {
-        name: "carrera_id"
+        name: "ciclo_lectivo_id"
       }
     },
-    materias: {
+    planesEstudio: {
       type: "one-to-many",
-      target: "Materia",
-      inverseSide: "planEstudio"
+      target: "PlanEstudio",
+      inverseSide: "carrera"
     }
   }
 });

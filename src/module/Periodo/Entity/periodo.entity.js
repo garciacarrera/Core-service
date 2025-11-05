@@ -1,6 +1,6 @@
 import { EntitySchema } from "typeorm";
 
-export const Periodo = new EntitySchema({
+export default new EntitySchema({
   name: "Periodo",
   tableName: "periodo",
   columns: {

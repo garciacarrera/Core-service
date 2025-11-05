@@ -1,6 +1,10 @@
 import { EntitySchema } from "typeorm";
 
-export const CicloLectivo = new EntitySchema({
+
+import CalendarioAcademicoSchema from "../../Calendario Academico/Entity/calendario-academico.entity.js"; 
+import CarreraSchema from "../../Carrera/Entity/carrera.entity.js";
+
+export default new EntitySchema({
   name: "CicloLectivo",
   tableName: "ciclo_lectivo",
   columns: {
@@ -24,18 +28,24 @@ export const CicloLectivo = new EntitySchema({
     cant_dias: {
       type: "int",
       nullable: false
+    },
+
+    estado: {
+      type: "varchar",
+      length: 50,
+      nullable: false 
     }
   },
   relations: {
     carreras: {
       type: "one-to-many",
-      target: "Carrera",
+      target: CarreraSchema, 
       inverseSide: "cicloLectivo"
     },
     calendarios: {
       type: "one-to-many",
-      target: "CalendarioAcademico",
-      inverseSide: "cicloLectivo"
+      target: CalendarioAcademicoSchema, 
+      inverseSide: "cicloLectivo" 
     }
   }
 });
