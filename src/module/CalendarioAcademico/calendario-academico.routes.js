@@ -5,7 +5,7 @@ import {
   createCalendario, 
   updateCalendario,
   deleteCalendario 
-} from '../controller/calendario-academico.controller.js';
+} from '../CalendarioAcademico/calendario-academico.controller.js';
 
 const router = Router();
 

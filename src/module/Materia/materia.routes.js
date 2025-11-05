@@ -5,7 +5,7 @@ import {
   createMateria, 
   updateMateria,
   deleteMateria 
-} from '../controller/materia.controller.js';
+} from '../Materia/materia.controller.js';
 
 const router = Router();
 

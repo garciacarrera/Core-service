@@ -1,9 +1,9 @@
-import { getDataSource } from "../../../configuration/datasource-provider.js";
-import { estudianteSchema } from "../schema/estudiante.schema.js"; 
-import EstudianteEntity from "../entity/estudiante.entity.js";
+import { AppDataSource } from "../../provider/datasource-provider.js";
+import { estudianteSchema } from "../Estudiante/schema/estudiante.schema.js"; 
+import EstudianteEntity from "../Estudiante/entity/estudiante.entity.js";
 
 const getRepository = async () => {
-  const dataSource = await getDataSource();
+  const dataSource = await AppDataSource();
   return dataSource.getRepository(EstudianteEntity);
 };
 

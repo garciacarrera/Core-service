@@ -1,8 +1,6 @@
 import { EntitySchema } from "typeorm";
-
-
-import CalendarioAcademicoSchema from "../../Calendario Academico/Entity/calendario-academico.entity.js"; 
-import CarreraSchema from "../../Carrera/Entity/carrera.entity.js";
+import CalendarioAcademicoSchema from "../../CalendarioAcademico/entity/calendario-academico.entity.js"; 
+import CarreraSchema from "../../Carrera/entity/carrera.entity.js";
 
 export default new EntitySchema({
   name: "CicloLectivo",

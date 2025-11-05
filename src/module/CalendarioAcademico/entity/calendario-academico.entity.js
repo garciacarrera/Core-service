@@ -32,7 +32,7 @@ export default new EntitySchema({
         referencedColumnName: "id"
       },
       inverseSide: "calendarios",
-      eager: true, // Cargamos la información del Ciclo Lectivo por defecto
+      eager: true,
     }
   }
 });

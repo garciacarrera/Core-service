@@ -1,9 +1,9 @@
-import { getDataSource } from "../../../configuration/datasource-provider.js";
-import { planEstudioSchema } from "../schema/plan-estudio.schema.js"; 
-import PlanEstudioEntity from "../entity/plan-estudio.entity.js";
+import { AppDataSource } from "../../provider/datasource-provider.js";
+import { planEstudioSchema } from "./schema/plan-estudio.schema.js"; 
+import PlanEstudioEntity from "./entity/plan-estudio.entity.js";
 
 const getRepository = async () => {
-  const dataSource = await getDataSource();
+  const dataSource = await AppDataSource();
   return dataSource.getRepository(PlanEstudioEntity);
 };
 

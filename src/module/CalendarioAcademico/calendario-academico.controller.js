@@ -1,11 +1,11 @@
-import { getDataSource } from "../../../configuration/datasource-provider.js";
-import { calendarioAcademicoSchema } from "../schema/calendario-academico.schema.js"; 
-import CalendarioAcademicoEntity from "../entity/calendario-academico.entity.js";
-import CicloLectivoEntity from "../entity/ciclo-lectivo.entity.js"; // Asegúrate de que esta ruta sea correcta
+import { AppDataSource } from "../../provider/datasource-provider.js";
+import { calendarioAcademicoSchema } from "../CalendarioAcademico/schema/calendario-academico.entity.js"; 
+import CalendarioAcademicoEntity from "../CalendarioAcademico/entity/calendario-academico.entity.js";
+import CicloLectivoEntity from "../Ciclo Lectivo/entity/Ciclo-lectivo.entity.js";
 
 // Función genérica para obtener el repositorio del Calendario
 const getRepository = async () => {
-  const dataSource = await getDataSource();
+  const dataSource = await AppDataSource();
   return dataSource.getRepository(CalendarioAcademicoEntity);
 };
 

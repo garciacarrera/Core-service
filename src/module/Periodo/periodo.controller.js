@@ -1,9 +1,9 @@
-import { getDataSource } from "../../../configuration/datasource-provider.js";
-import { periodoSchema } from "../schema/periodo.schema.js"; 
-import PeriodoEntity from "../entity/periodo.entity.js";
+import { AppDataSource } from "../../provider/datasource-provider.js";
+import { periodoSchema } from "../Periodo/schema/periodo.schema.js"; 
+import PeriodoEntity from "../Periodo/entity/periodo.entity.js";
 
 const getRepository = async () => {
-  const dataSource = await getDataSource();
+  const dataSource = await AppDataSource();
   return dataSource.getRepository(PeriodoEntity);
 };
 

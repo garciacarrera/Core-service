@@ -1,10 +1,10 @@
-import { getDataSource } from "../../../configuration/datasource-provider.js";
-import { carreraSchema } from "../schema/carrera.schema.js"; // Asegúrate que la ruta sea correcta
-import CarreraEntity from "../entity/carrera.entity.js";
+import { AppDataSource } from "../../provider/datasource-provider.js";
+import { carreraSchema } from "../Carrera/schema/carrera.schema.js";
+import CarreraEntity from "../Carrera/entity/carrera.entity.js";
 
 // Función auxiliar para obtener el repositorio de Carrera
 const getRepository = async () => {
-  const dataSource = await getDataSource();
+  const dataSource = await AppDataSource();
   // El nombre de la entidad en findOneBy es 'Carrera'
   return dataSource.getRepository(CarreraEntity);
 };

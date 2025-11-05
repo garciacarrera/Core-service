@@ -5,7 +5,7 @@ import {
   createEstudiante, 
   updateEstudiante,
   deleteEstudiante 
-} from '../controller/estudiante.controller.js';
+} from '../Estudiante/estudiante.controller.js';
 
 const router = Router();
 

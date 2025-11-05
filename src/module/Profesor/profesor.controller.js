@@ -1,16 +1,16 @@
-import { getDataSource } from "../../../configuration/datasource-provider.js";
-import { profesorSchema } from "../schema/profesor.schema.js"; 
-import ProfesorEntity from "../entity/profesor.entity.js";
-import MateriaEntity from "../../materia/entity/materia.entity.js"; // IMPORTANTE: Necesitas esta entidad para asignar.
+import { AppDataSource } from "../../provider/datasource-provider.js";
+import { profesorSchema } from "../Profesor/schema/profesor.schema.js"; 
+import ProfesorEntity from "../Profesor/entity/profesor.entity.js";
+import MateriaEntity from "../Materia/entity/materia.entity.js";
 
 const getRepository = async () => {
-  const dataSource = await getDataSource();
+  const dataSource = await AppDataSource();
   return dataSource.getRepository(ProfesorEntity);
 };
 
 // Necesario para buscar la materia por ID antes de asignarla.
 const getMateriaRepository = async () => {
-    const dataSource = await getDataSource();
+    const dataSource = await AppDataSource();
     return dataSource.getRepository(MateriaEntity);
 };
 

@@ -5,7 +5,7 @@ import {
   createPlanEstudio, 
   updatePlanEstudio,
   deletePlanEstudio 
-} from '../controller/plan-estudio.controller.js';
+} from '../PlanEstudio/plan-estudio.controller.js';
 
 const router = Router();
 

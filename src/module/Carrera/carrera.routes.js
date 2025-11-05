@@ -5,7 +5,7 @@ import {
   createCarrera, 
   updateCarrera,
   deleteCarrera 
-} from '../controller/carrera.controller.js'; // Ajusta la ruta si es necesario
+} from '../Carrera/carrera.controller.js';
 
 const router = Router();
 

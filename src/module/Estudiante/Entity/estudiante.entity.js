@@ -1,5 +1,4 @@
 import { EntitySchema } from 'typeorm';
-import CarreraEntity from '../../carrera/entity/carrera.entity.js';
 
 export default new EntitySchema({
   name: 'Estudiante',
