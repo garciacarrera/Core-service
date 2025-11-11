@@ -1,20 +1,18 @@
-import { AppDataSource } from "../../provider/datasource-provider.js";
-import { periodoSchema } from "../Periodo/schema/periodo.schema.js"; 
+// src/module/Periodo/periodo.controller.js
+import AppDataSource from "../../provider/datasource-provider.js";
+import { periodoSchema } from "../Periodo/schema/periodo.schema.js";
 import PeriodoEntity from "../Periodo/entity/periodo.entity.js";
 
-const getRepository = async () => {
-  const dataSource = await AppDataSource();
-  return dataSource.getRepository(PeriodoEntity);
-};
+// Repositorio directo
+const PeriodoRepository = AppDataSource.getRepository(PeriodoEntity);
 
-// RELACIONES A CARGAR: Carga las materias relacionadas con el período.
+// Relaciones que se deben cargar con el período
 const relations = ["materias"];
 
 // --- GET ALL
 export const getAllPeriodos = async (req, res) => {
   try {
-    const repository = await getRepository();
-    const periodos = await repository.find({ relations });
+    const periodos = await PeriodoRepository.find({ relations });
     return res.status(200).json(periodos);
   } catch (error) {
     console.error("Error al obtener períodos:", error);
@@ -25,16 +23,15 @@ export const getAllPeriodos = async (req, res) => {
 // --- GET BY ID
 export const getPeriodoById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const repository = await getRepository();
-    const periodo = await repository.findOne({ 
-      where: { id: parseInt(id) },
+    const periodo = await PeriodoRepository.findOne({
+      where: { id: parseInt(req.params.id) },
       relations
     });
 
     if (!periodo) {
       return res.status(404).json({ message: "Período no encontrado." });
     }
+
     return res.status(200).json(periodo);
   } catch (error) {
     console.error(`Error al obtener período ID ${req.params.id}:`, error);
@@ -48,18 +45,16 @@ export const createPeriodo = async (req, res) => {
     const { error, value } = periodoSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ 
-        message: "Error de validación de datos.", 
-        details: error.details.map(d => d.message) 
+      return res.status(400).json({
+        message: "Error de validación de datos.",
+        details: error.details.map(d => d.message)
       });
     }
 
-    const repository = await getRepository();
-    const nuevoPeriodo = repository.create(value);
-    await repository.save(nuevoPeriodo);
+    const nuevoPeriodo = PeriodoRepository.create(value);
+    await PeriodoRepository.save(nuevoPeriodo);
 
     return res.status(201).json(nuevoPeriodo);
-
   } catch (error) {
     console.error("Error al crear período:", error);
     return res.status(500).json({ message: "Error interno del servidor al crear el período." });
@@ -69,28 +64,25 @@ export const createPeriodo = async (req, res) => {
 // --- PUT
 export const updatePeriodo = async (req, res) => {
   try {
-    const { id } = req.params;
     const { error, value } = periodoSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ 
-        message: "Error de validación de datos.", 
-        details: error.details.map(d => d.message) 
+      return res.status(400).json({
+        message: "Error de validación de datos.",
+        details: error.details.map(d => d.message)
       });
     }
 
-    const repository = await getRepository();
-    const periodoAActualizar = await repository.findOneBy({ id: parseInt(id) });
+    const periodoAActualizar = await PeriodoRepository.findOneBy({ id: parseInt(req.params.id) });
 
     if (!periodoAActualizar) {
       return res.status(404).json({ message: "Período no encontrado para actualizar." });
     }
 
-    repository.merge(periodoAActualizar, value);
-    const periodoActualizado = await repository.save(periodoAActualizar);
+    PeriodoRepository.merge(periodoAActualizar, value);
+    const actualizado = await PeriodoRepository.save(periodoAActualizar);
 
-    return res.status(200).json(periodoActualizado);
-
+    return res.status(200).json(actualizado);
   } catch (error) {
     console.error(`Error al actualizar período ID ${req.params.id}:`, error);
     return res.status(500).json({ message: "Error interno del servidor al actualizar el período." });
@@ -100,18 +92,15 @@ export const updatePeriodo = async (req, res) => {
 // --- DELETE
 export const deletePeriodo = async (req, res) => {
   try {
-    const { id } = req.params;
-    const repository = await getRepository();
-    const resultado = await repository.delete(parseInt(id));
+    const resultado = await PeriodoRepository.delete(parseInt(req.params.id));
 
     if (resultado.affected === 0) {
       return res.status(404).json({ message: "Período no encontrado para eliminar." });
     }
 
-    return res.status(204).send(); 
+    return res.status(204).send();
   } catch (error) {
     console.error(`Error al eliminar período ID ${req.params.id}:`, error);
-    // Nota: La BD podría lanzar un error de Foreign Key si hay materias asociadas.
     return res.status(500).json({ message: "Error interno del servidor al eliminar el período." });
   }
 };

@@ -1,21 +1,15 @@
-import { AppDataSource } from "../../provider/datasource-provider.js";
+// src/module/Carrera/carrera.controller.js
+import AppDataSource from "../../provider/datasource-provider.js";
 import { carreraSchema } from "../Carrera/schema/carrera.schema.js";
 import CarreraEntity from "../Carrera/entity/carrera.entity.js";
 
-// Función auxiliar para obtener el repositorio de Carrera
-const getRepository = async () => {
-  const dataSource = await AppDataSource();
-  // El nombre de la entidad en findOneBy es 'Carrera'
-  return dataSource.getRepository(CarreraEntity);
-};
+const CarreraRepository = AppDataSource.getRepository(CarreraEntity);
 
-// --- GET ALL: Obtener todas las Carreras ---
+// --- GET ALL ---
 export const getAllCarreras = async (req, res) => {
   try {
-    const repository = await getRepository();
-    // Usamos 'find' con 'relations' para incluir el CicloLectivo relacionado
-    const carreras = await repository.find({
-      relations: ["cicloLectivo"] 
+    const carreras = await CarreraRepository.find({
+      relations: ["cicloLectivo"]
     });
 
     return res.status(200).json(carreras);
@@ -25,14 +19,11 @@ export const getAllCarreras = async (req, res) => {
   }
 };
 
-// --- GET BY ID: Obtener una Carrera por ID ---
+// --- GET BY ID ---
 export const getCarreraById = async (req, res) => {
   try {
-    const { id } = req.params;
-    const repository = await getRepository();
-    // Usamos findOne para obtener la carrera y su relación
-    const carrera = await repository.findOne({ 
-      where: { id: parseInt(id) },
+    const carrera = await CarreraRepository.findOne({
+      where: { id: parseInt(req.params.id) },
       relations: ["cicloLectivo"]
     });
 
@@ -42,15 +33,14 @@ export const getCarreraById = async (req, res) => {
 
     return res.status(200).json(carrera);
   } catch (error) {
-    console.error(`Error al obtener carrera con ID ${req.params.id}:`, error);
+    console.error("Error al obtener carrera:", error);
     return res.status(500).json({ message: "Error interno del servidor al obtener la carrera." });
   }
 };
 
-// --- POST: Crear una nueva Carrera ---
+// --- POST ---
 export const createCarrera = async (req, res) => {
   try {
-    // 1. Validar datos con Joi Schema
     const { error, value } = carreraSchema.validate(req.body);
 
     if (error) {
@@ -60,27 +50,19 @@ export const createCarrera = async (req, res) => {
       });
     }
 
-    const repository = await getRepository();
-    
-    // 2. Guardar el nuevo registro
-    // El 'ciclo_lectivo_id' en el value se mapea automáticamente por TypeORM
-    const nuevaCarrera = repository.create(value);
-    await repository.save(nuevaCarrera);
+    const nuevaCarrera = CarreraRepository.create(value);
+    await CarreraRepository.save(nuevaCarrera);
 
     return res.status(201).json(nuevaCarrera);
-
   } catch (error) {
     console.error("Error al crear carrera:", error);
     return res.status(500).json({ message: "Error interno del servidor al crear la carrera." });
   }
 };
 
-// --- PUT: Actualizar una Carrera existente ---
+// --- PUT ---
 export const updateCarrera = async (req, res) => {
   try {
-    const { id } = req.params;
-
-    // 1. Validar datos con Joi Schema
     const { error, value } = carreraSchema.validate(req.body);
 
     if (error) {
@@ -90,44 +72,34 @@ export const updateCarrera = async (req, res) => {
       });
     }
 
-    const repository = await getRepository();
-    
-    // 2. Buscar si la Carrera existe
-    const carreraAActualizar = await repository.findOneBy({ id: parseInt(id) });
+    const carrera = await CarreraRepository.findOneBy({ id: parseInt(req.params.id) });
 
-    if (!carreraAActualizar) {
-      return res.status(404).json({ message: "Carrera no encontrada para actualizar." });
+    if (!carrera) {
+      return res.status(404).json({ message: "Carrera no encontrada." });
     }
 
-    // 3. Actualizar el objeto y guardar
-    repository.merge(carreraAActualizar, value);
-    const carreraActualizada = await repository.save(carreraAActualizar);
+    CarreraRepository.merge(carrera, value);
+    const actualizada = await CarreraRepository.save(carrera);
 
-    return res.status(200).json(carreraActualizada);
-
+    return res.status(200).json(actualizada);
   } catch (error) {
-    console.error(`Error al actualizar carrera con ID ${req.params.id}:`, error);
+    console.error("Error al actualizar carrera:", error);
     return res.status(500).json({ message: "Error interno del servidor al actualizar la carrera." });
   }
 };
 
-// --- DELETE: Eliminar una Carrera ---
+// --- DELETE ---
 export const deleteCarrera = async (req, res) => {
   try {
-    const { id } = req.params;
-    const repository = await getRepository();
+    const result = await CarreraRepository.delete(parseInt(req.params.id));
 
-    const resultado = await repository.delete(parseInt(id));
-
-    if (resultado.affected === 0) {
-      return res.status(404).json({ message: "Carrera no encontrada para eliminar." });
+    if (result.affected === 0) {
+      return res.status(404).json({ message: "Carrera no encontrada." });
     }
 
-    return res.status(204).send(); // 204 No Content
-
+    return res.status(204).send();
   } catch (error) {
-    console.error(`Error al eliminar carrera con ID ${req.params.id}:`, error);
-    // Nota: Si hay Planes de Estudio relacionados, la base de datos podría tirar un error de clave foránea.
-    return res.status(500).json({ message: "Error interno del servidor al eliminar la carrera (puede haber Planes de Estudio relacionados)." });
+    console.error("Error al eliminar carrera:", error);
+    return res.status(500).json({ message: "Error interno al eliminar la carrera." });
   }
 };

@@ -73,8 +73,12 @@ export const createCalendario = async (req, res) => {
 
     // 2. Crear y guardar el nuevo calendario
     const repository = await getRepository();
-    const nuevoCalendario = repository.create(value);
-    await repository.save(nuevoCalendario);
+    
+    // 💡 Aquí se incluye el campo 'estado' con el valor por defecto
+    const dataToCreate = { 
+      ...value, 
+      estado: "ACTIVO" // Establecemos el valor por defecto aquí
+    };
 
     // 3. Retornar el objeto creado con las relaciones cargadas
     const calendarioCreado = await repository.findOne({ 

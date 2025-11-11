@@ -1,19 +1,20 @@
-import { AppDataSource } from "../../provider/datasource-provider.js";
-import { materiaSchema } from "../Materia/schema/materia.schema.js"; 
-import MateriaEntity from "../Materia/entity/materia.entity.js";
+import AppDataSource from "../../provider/datasource-provider.js";
+import { materiaSchema } from "./schema/materia.schema.js";
+import MateriaEntity from "./entity/materia.entity.js";
+import PeriodoEntity from "../Periodo/entity/periodo.entity.js";
+import PlanEstudioEntity from "../PlanEstudio/entity/plan-estudio.entity.js";
 
-const getRepository = async () => {
-  const dataSource = await AppDataSource();
-  return dataSource.getRepository(MateriaEntity);
-};
+// ⚡ Ahora el repositorio se obtiene directamente del DataSource (sin llamar a la función)
+const repository = AppDataSource.getRepository(MateriaEntity);
+const periodoRepository = AppDataSource.getRepository(PeriodoEntity);
+const planEstudioRepository = AppDataSource.getRepository(PlanEstudioEntity);
 
-// RELACIONES A CARGAR: Para obtener la información completa de la materia
+// Relaciones a cargar
 const relations = ["periodo", "planEstudio"];
 
 // --- GET ALL
 export const getAllMaterias = async (req, res) => {
   try {
-    const repository = await getRepository();
     const materias = await repository.find({ relations });
     return res.status(200).json(materias);
   } catch (error) {
@@ -26,8 +27,7 @@ export const getAllMaterias = async (req, res) => {
 export const getMateriaById = async (req, res) => {
   try {
     const { id } = req.params;
-    const repository = await getRepository();
-    const materia = await repository.findOne({ 
+    const materia = await repository.findOne({
       where: { id: parseInt(id) },
       relations
     });
@@ -48,22 +48,38 @@ export const createMateria = async (req, res) => {
     const { error, value } = materiaSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ 
-        message: "Error de validación de datos.", 
-        details: error.details.map(d => d.message) 
+      return res.status(400).json({
+        message: "Error de validación de datos.",
+        details: error.details.map(d => d.message)
       });
     }
 
-    const repository = await getRepository();
-    // Crea la entidad Materia usando los IDs de relación
-    const nuevaMateria = repository.create(value);
+    // Verificar relaciones
+    const periodo = await periodoRepository.findOneBy({ id: value.periodo_id });
+    if (!periodo) {
+      return res.status(404).json({ message: `No existe un Periodo con id ${value.periodo_id}` });
+    }
+
+    const planEstudio = await planEstudioRepository.findOneBy({ id: value.plan_estudio_id });
+    if (!planEstudio) {
+      return res.status(404).json({ message: `No existe un Plan de Estudio con id ${value.plan_estudio_id}` });
+    }
+
+    const nuevaMateria = repository.create({
+      nombre: value.nombre,
+      horas_catedra: value.horas_catedra,
+      periodo,
+      planEstudio
+    });
+
     await repository.save(nuevaMateria);
 
-    // Para devolver la materia con las relaciones cargadas
-    const materiaCreada = await repository.findOne({ where: { id: nuevaMateria.id }, relations });
+    const materiaCreada = await repository.findOne({
+      where: { id: nuevaMateria.id },
+      relations
+    });
 
     return res.status(201).json(materiaCreada);
-
   } catch (error) {
     console.error("Error al crear materia:", error);
     return res.status(500).json({ message: "Error interno del servidor al crear la materia." });
@@ -77,13 +93,12 @@ export const updateMateria = async (req, res) => {
     const { error, value } = materiaSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ 
-        message: "Error de validación de datos.", 
-        details: error.details.map(d => d.message) 
+      return res.status(400).json({
+        message: "Error de validación de datos.",
+        details: error.details.map(d => d.message)
       });
     }
 
-    const repository = await getRepository();
     const materiaAActualizar = await repository.findOneBy({ id: parseInt(id) });
 
     if (!materiaAActualizar) {
@@ -93,12 +108,12 @@ export const updateMateria = async (req, res) => {
     repository.merge(materiaAActualizar, value);
     await repository.save(materiaAActualizar);
 
-    // Para devolver la materia con las relaciones actualizadas y cargadas
-    const materiaActualizada = await repository.findOne({ where: { id: parseInt(id) }, relations });
-
+    const materiaActualizada = await repository.findOne({
+      where: { id: parseInt(id) },
+      relations
+    });
 
     return res.status(200).json(materiaActualizada);
-
   } catch (error) {
     console.error(`Error al actualizar materia ID ${req.params.id}:`, error);
     return res.status(500).json({ message: "Error interno del servidor al actualizar la materia." });
@@ -109,14 +124,13 @@ export const updateMateria = async (req, res) => {
 export const deleteMateria = async (req, res) => {
   try {
     const { id } = req.params;
-    const repository = await getRepository();
     const resultado = await repository.delete(parseInt(id));
 
     if (resultado.affected === 0) {
       return res.status(404).json({ message: "Materia no encontrada para eliminar." });
     }
 
-    return res.status(204).send(); 
+    return res.status(204).send();
   } catch (error) {
     console.error(`Error al eliminar materia ID ${req.params.id}:`, error);
     return res.status(500).json({ message: "Error interno del servidor al eliminar la materia." });

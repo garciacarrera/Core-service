@@ -1,13 +1,16 @@
-import { AppDataSource } from "../../provider/datasource-provider.js";
+import AppDataSource from "../../provider/datasource-provider.js";
 import { planEstudioSchema } from "./schema/plan-estudio.schema.js"; 
 import PlanEstudioEntity from "./entity/plan-estudio.entity.js";
+import CarreraEntity from "../Carrera/entity/carrera.entity.js";
 
 const getRepository = async () => {
-  const dataSource = await AppDataSource();
-  return dataSource.getRepository(PlanEstudioEntity);
+  if (!AppDataSource.isInitialized) {
+    await AppDataSource.initialize();
+  }
+  return AppDataSource.getRepository(PlanEstudioEntity);
 };
 
-// Relaciones a cargar: Carrera (Many-to-One) y Materias (One-to-Many)
+// Relaciones
 const relations = ["carrera", "materias"];
 
 // --- GET ALL
@@ -27,17 +30,14 @@ export const getPlanEstudioById = async (req, res) => {
   try {
     const { id } = req.params;
     const repository = await getRepository();
-    const plan = await repository.findOne({ 
-      where: { id: parseInt(id) },
-      relations
-    });
+    const plan = await repository.findOne({ where: { id: parseInt(id) }, relations });
 
     if (!plan) {
       return res.status(404).json({ message: "Plan de Estudio no encontrado." });
     }
     return res.status(200).json(plan);
   } catch (error) {
-    console.error(`Error al obtener Plan de Estudio ID ${req.params.id}:`, error);
+    console.error(`Error al obtener Plan Estudio ID ${req.params.id}:`, error);
     return res.status(500).json({ message: "Error interno del servidor." });
   }
 };
@@ -48,24 +48,50 @@ export const createPlanEstudio = async (req, res) => {
     const { error, value } = planEstudioSchema.validate(req.body);
 
     if (error) {
-      return res.status(400).json({ 
-        message: "Error de validación de datos.", 
-        details: error.details.map(d => d.message) 
+      return res.status(400).json({
+        message: "Error de validación de datos.",
+        details: error.details.map(d => d.message)
       });
     }
 
-    const repository = await getRepository();
-    const nuevoPlan = repository.create(value);
+    if (!AppDataSource.isInitialized) {
+      await AppDataSource.initialize();
+    }
+
+    const repository = AppDataSource.getRepository(PlanEstudioEntity);
+    const carreraRepo = AppDataSource.getRepository(CarreraEntity);
+
+    // 1) Buscar carrera
+    const carrera = await carreraRepo.findOneBy({ id: value.carrera_id });
+
+    if (!carrera) {
+      return res.status(404).json({
+        message: `No existe una Carrera con id ${value.carrera_id}`
+      });
+    }
+
+    // 2) Crear plan
+    const nuevoPlan = repository.create({
+      nombre: value.nombre,
+      anio_educativo: value.anio_educativo,
+      carrera: carrera
+    });
+
     await repository.save(nuevoPlan);
 
-    // Retorna el objeto completo con las relaciones cargadas
-    const planCreado = await repository.findOne({ where: { id: nuevoPlan.id }, relations });
+    // 3) Retornar con relaciones
+    const planCreado = await repository.findOne({
+      where: { id: nuevoPlan.id },
+      relations
+    });
 
     return res.status(201).json(planCreado);
 
   } catch (error) {
     console.error("Error al crear Plan de Estudio:", error);
-    return res.status(500).json({ message: "Error interno del servidor al crear el Plan de Estudio (Verifique 'carrera_id')." });
+    return res.status(500).json({
+      message: "Error interno del servidor al crear el Plan de Estudio (Verifique 'carrera_id')."
+    });
   }
 };
 
@@ -77,8 +103,8 @@ export const updatePlanEstudio = async (req, res) => {
 
     if (error) {
       return res.status(400).json({ 
-        message: "Error de validación de datos.", 
-        details: error.details.map(d => d.message) 
+        message: "Error de validación de datos.",
+        details: error.details.map(d => d.message)
       });
     }
 
@@ -92,14 +118,12 @@ export const updatePlanEstudio = async (req, res) => {
     repository.merge(planAActualizar, value);
     await repository.save(planAActualizar);
 
-    // Retorna el objeto actualizado con las relaciones cargadas
     const planActualizado = await repository.findOne({ where: { id: parseInt(id) }, relations });
-
     return res.status(200).json(planActualizado);
 
   } catch (error) {
-    console.error(`Error al actualizar Plan de Estudio ID ${req.params.id}:`, error);
-    return res.status(500).json({ message: "Error interno del servidor al actualizar el Plan de Estudio (Verifique 'carrera_id')." });
+    console.error(`Error al actualizar Plan Estudio ID ${req.params.id}:`, error);
+    return res.status(500).json({ message: "Error interno del servidor." });
   }
 };
 
@@ -114,10 +138,9 @@ export const deletePlanEstudio = async (req, res) => {
       return res.status(404).json({ message: "Plan de Estudio no encontrado para eliminar." });
     }
 
-    return res.status(204).send(); 
+    return res.status(204).send();
   } catch (error) {
-    console.error(`Error al eliminar Plan de Estudio ID ${req.params.id}:`, error);
-    // Nota: La BD podría lanzar un error de Foreign Key si hay materias asociadas.
+    console.error(`Error al eliminar Plan Estudio ID ${req.params.id}:`, error);
     return res.status(500).json({ message: "Error interno del servidor al eliminar el Plan de Estudio." });
   }
 };

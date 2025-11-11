@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { envs } from "../configuration/envs.js";
+
 import CicloLectivoEntity from "../module/Ciclo Lectivo/entity/Ciclo-lectivo.entity.js";
 import calendarioAcademicoEntity from "../module/CalendarioAcademico/entity/calendario-academico.entity.js";
 import carreraEntity from "../module/Carrera/entity/carrera.entity.js";
@@ -18,7 +19,7 @@ export const AppDataSource = new DataSource({
   username: envs.DB_USER,
   password: envs.DB_PASSWORD,
   database: envs.DB_NAME,
-  synchronize: true,
+  synchronize: false,
   logging: true,
   entities: [
     CicloLectivoEntity,
