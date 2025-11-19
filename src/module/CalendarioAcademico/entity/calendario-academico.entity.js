@@ -1,6 +1,6 @@
 import { EntitySchema } from "typeorm";
 
-export const CalendarioAcademico = new EntitySchema({
+export default new EntitySchema({
   name: "CalendarioAcademico",
   tableName: "calendario_academico",
   columns: {
@@ -16,15 +16,23 @@ export const CalendarioAcademico = new EntitySchema({
     fecha_fin_inscripcion: {
       type: "date",
       nullable: false
+    },
+    // Columna para la clave foránea (FK)
+    ciclo_lectivo_id: {
+      type: "int",
+      nullable: false
     }
   },
   relations: {
     cicloLectivo: {
-      type: "many-to-one",
       target: "CicloLectivo",
+      type: "many-to-one",
       joinColumn: {
-        name: "ciclo_lectivo_id"
-      }
+        name: "ciclo_lectivo_id",
+        referencedColumnName: "id"
+      },
+      inverseSide: "calendarios",
+      eager: true,
     }
   }
 });
